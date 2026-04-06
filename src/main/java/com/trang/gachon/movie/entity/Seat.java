@@ -20,13 +20,13 @@ public class Seat {
     @Column(name = "seat_id")
     private Long seatId;
 
-    //hàng 1->10
-    @Column (name = "seat_row")
-    private Integer seatRow;
+    // hàng: A, B, C...
+    @Column(name = "seat_row", nullable = false, length = 5)
+    private String seatRow;
 
-    //cột a->f
-    @Column(name = "seat_column", nullable = false, length = 5)
-    private String seatColumn;
+    // số ghế: 1, 2, 3...
+    @Column(name = "seat_column", nullable = false)
+    private Integer seatColumn;
     
     //db lưu string  "normal" | "vip"
     @Enumerated(EnumType.STRING)

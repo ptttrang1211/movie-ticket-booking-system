@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Chọn chi nhánh - TRANGGDCinema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="bi bi-camera-reels-fill text-danger me-1"></i>TRANGGDCinema
+        </a>
+    </div>
+</nav>
+
+<div class="container py-4" style="max-width:760px">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/movies}">Phim</a></li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/movies/{id}(id=${movie.movieId})}"
+                   th:text="${movie.movieNameVn != null ? movie.movieNameVn : movie.movieNameEnglish}"></a>
+            </li>
+            <li class="breadcrumb-item active">Chọn chi nhánh</li>
+        </ol>
+    </nav>
+
+    <!-- Stepper -->
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <span class="badge bg-danger rounded-pill px-3 py-2">1. Chi nhánh</span>
+        <div class="flex-grow-1 border-top"></div>
+        <span class="badge bg-secondary rounded-pill px-3 py-2">2. Suất chiếu</span>
+        <div class="flex-grow-1 border-top"></div>
+        <span class="badge bg-secondary rounded-pill px-3 py-2">3. Chọn ghế</span>
+        <div class="flex-grow-1 border-top"></div>
+        <span class="badge bg-secondary rounded-pill px-3 py-2">4. Xác nhận</span>
+    </div>
+
+    <!-- Movie info -->
+    <div class="d-flex gap-3 align-items-center mb-4 p-3 bg-light rounded">
+        <img th:if="${movie.smallImage}"
+             th:src="${movie.smallImageSrc}"
+             height="70" class="rounded"/>
+        <div>
+            <h6 class="fw-bold mb-1"
+                th:text="${movie.movieNameVn != null ? movie.movieNameVn : movie.movieNameEnglish}"></h6>
+            <small class="text-muted">
+                <span th:text="${movie.duration}"></span> phút ·
+                <span th:text="${movie.version}"></span>
+            </small>
+        </div>
+    </div>
+
+    <h5 class="fw-bold mb-3">Chọn chi nhánh</h5>
+
+    <div th:if="${#lists.isEmpty(branches)}"
+         class="alert alert-warning">
+        Hiện chưa có chi nhánh nào mở bán cho phim này.
+    </div>
+
+    <div class="row g-3" th:unless="${#lists.isEmpty(branches)}">
+        <div class="col-md-6" th:each="branch : ${branches}">
+            <a th:href="@{/booking/select-showtime(movieId=${movie.movieId},branchId=${branch.branchId})}"
+               class="text-decoration-none">
+                <div class="card h-100 branch-card border-2 p-3">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="bg-danger bg-opacity-10 rounded p-2">
+                            <i class="bi bi-building text-danger fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1 text-dark"
+                                th:text="${branch.branchName}"></h6>
+                            <p class="small text-muted mb-1">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                <span th:text="${branch.address}"></span>
+                            </p>
+                            <p class="small text-muted mb-0">
+                                <i class="bi bi-telephone me-1"></i>
+                                <span th:text="${branch.phone}"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+    .branch-card { transition: all .2s; cursor: pointer; }
+    .branch-card:hover { border-color: #dc3545 !important; box-shadow: 0 4px 12px rgba(220,53,69,.15); }
+</style>
+</body>
+</html>

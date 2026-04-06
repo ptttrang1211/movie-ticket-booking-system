@@ -5,6 +5,7 @@ import com.trang.gachon.movie.converter.AccountStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -37,7 +38,7 @@ public class Account {
     @Column(name = "password", nullable = false, length = 100 )
     private String password;
 
-    @Column(name = "full_name", length = 255)
+    @Column(name = "full_name", columnDefinition = "NVARCHAR(255)")
     private String  fullName;
 
     @Column(name = "email", length = 255, nullable = false)
@@ -50,14 +51,14 @@ public class Account {
     @Column(name = "identity_card", length = 50)
     private String identityCard;
 
-    @Column(name = "date_of_birth", length = 50)
+    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
     //nam or nữ
-    @Column(name = "gender", length = 10)
+    @Column(name = "gender", columnDefinition = "NVARCHAR(20)")
     private String gender;
 
-    @Column(name = "address", length = 255)
+    @Column(name = "address", columnDefinition = "NVARCHAR(255)")
     private String address;
 
     @Column(name = "image", length = 255)
@@ -65,6 +66,9 @@ public class Account {
 
     @Column(name = "register_date")
     private LocalDate registerDate;
+
+    @Column(name = "pending_created_at")
+    private LocalDateTime pendingCreatedAt;
 
     //DB lưu int 1/2 -> converter map sang accountStatus enum
     @Convert(converter = AccountStatusConverter.class)
@@ -84,3 +88,6 @@ public class Account {
     @OneToOne(mappedBy = "account" , cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Employee  employee;
 }
+
+//bắt exception của ngày tháng
+//

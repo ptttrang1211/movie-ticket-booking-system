@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Bán vé - Chọn phim</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="d-flex">
+
+    <div class="sidebar bg-dark text-white p-3" style="min-width:200px;min-height:100vh">
+        <h5 class="fw-bold mb-4"><i class="bi bi-camera-reels-fill text-danger me-2"></i>Employee</h5>
+        <ul class="nav flex-column gap-1">
+            <li><a th:href="@{/ticket/select-movie}" class="nav-link text-white active"><i class="bi bi-ticket me-2"></i>Bán vé</a></li>
+            <li><a th:href="@{/home}" class="nav-link text-white"><i class="bi bi-house me-2"></i>Trang chủ</a></li>
+        </ul>
+    </div>
+
+    <div class="flex-grow-1 p-4">
+        <h4 class="fw-bold mb-4">Bán vé tại quầy</h4>
+
+        <div class="d-flex align-items-center gap-2 mb-4" style="max-width:500px">
+            <span class="badge bg-danger rounded-pill px-3 py-2">1. Chọn phim</span>
+            <div class="flex-grow-1 border-top"></div>
+            <span class="badge bg-secondary rounded-pill px-3 py-2">2. Suất chiếu</span>
+            <div class="flex-grow-1 border-top"></div>
+            <span class="badge bg-secondary rounded-pill px-3 py-2">3. Chọn ghế</span>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Chi nhánh</label>
+                <select class="form-select" id="branchSelect">
+                    <option value="">-- Chọn chi nhánh --</option>
+                    <option th:each="b : ${branches}"
+                            th:value="${b.branchId}"
+                            th:text="${b.branchName}"></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row row-cols-2 row-cols-md-4 g-3">
+            <div class="col" th:each="movie : ${movies}">
+                <div class="card h-100 movie-card">
+                    <img th:if="${movie.smallImage}"
+                         th:src="${movie.smallImageSrc}"
+                         class="card-img-top movie-poster" alt="poster"/>
+                    <div class="card-body p-2">
+                        <p class="card-text fw-bold small text-truncate mb-0"
+                           th:text="${movie.movieNameVn != null ? movie.movieNameVn : movie.movieNameEnglish}"></p>
+                        <p class="small text-muted mb-2"
+                           th:text="${movie.duration} + ' phút'"></p>
+                    </div>
+                    <div class="card-footer bg-white border-0 p-2">
+                        <button type="button"
+                                class="btn btn-sm btn-danger w-100 select-movie-btn"
+                                th:data-movie-id="${movie.movieId}">
+                            Chọn phim này
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.querySelectorAll('.select-movie-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const branchId = document.getElementById('branchSelect').value;
+            if (!branchId) {
+                alert('Vui lòng chọn chi nhánh trước!');
+                return;
+            }
+            const movieId = btn.dataset.movieId;
+            window.location.href = `/ticket/select-showtime?movieId=${movieId}&branchId=${branchId}`;
+        });
+    });
+</script>
+</body>
+</html>

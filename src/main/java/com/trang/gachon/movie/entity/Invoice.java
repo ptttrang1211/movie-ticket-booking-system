@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "invoice")
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Invoice {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long invoiceId;
 
     // Mã booking hiển thị UI: "SV7FuDAkwX"
@@ -24,21 +25,21 @@ public class Invoice {
 
     //snapshot tại thời điểm đặt
     //lưu string thay vì fk vì nếu sửa tên phim, hoá đơn cũ vẫn đúng
-    @Column(name = "movie_name",  length = 255)
+    @Column(name = "movie_name", columnDefinition = "NVARCHAR(255)")
     private String movieName;
 
-    @Column(name = "cinema_room", length = 255)
+    @Column(name = "cinema_room", columnDefinition = "NVARCHAR(255)")
     private String cinemaRoom;
 
     @Column(name = "schedule_show")
     private LocalDate scheduleShow;
 
     // "21:00"
-    @Column(name = "schedule_show_time",length = 20)
+    @Column(name = "schedule_show_time", columnDefinition = "NVARCHAR(20)")
     private String scheduleShowTime;
 
     //1D 1E 1F - danh sách ghế cách nhau bằng dấu cách
-    @Column(name = "seat", length = 255)
+    @Column(name = "seat", columnDefinition = "NVARCHAR(255)")
     private String seat;
 
     @Column(name = "booking_date")
@@ -61,8 +62,28 @@ public class Invoice {
     private Long useScore = 0L;
 
     //FK -> account(N:1) : 1 account có nhiều invoice
+    //Cho phép null để employee có thể bán vé cho khách vãng lai tại quầy
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false,foreignKey = @ForeignKey(name = "fk_invoice_account_id"))
+    @JoinColumn(name = "account_id", nullable = true,foreignKey = @ForeignKey(name = "fk_invoice_account_id"))
     private Account account;
+
+    // Nhân viên/quản trị viên nào là người xử lý invoice này.
+    // Mình lưu Account thay vì Employee riêng để bám đúng design hiện tại:
+    // employee chỉ là phần mở rộng 1-1 của account.
+    // Nhờ vậy cả flow "bán tại quầy" lẫn "xác nhận booking online" đều dùng chung được.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "handled_by_account_id",
+            nullable = true,
+            foreignKey = @ForeignKey(name = "fk_invoice_handled_by_account_id")
+    )
+    private Account handledBy;
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Ticket> tickets;
+
+    @ManyToOne(optional = true) //nhiều invoice thì có 1 promotion, or ko có 
+    @JoinColumn(name = "promotion_id", nullable = true)
+    private Promotion promotion;
 
 }

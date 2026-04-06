@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>In vé - TRANGGDCinema</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+  <style>
+    .receipt-card{border:2px dashed #198754;border-radius:16px;max-width:480px;margin:0 auto}
+    .ticket-divider{border-top:2px dashed #dee2e6;margin:16px -1px}
+    @media print{.no-print{display:none!important}}
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+
+  <div class="text-center mb-4 no-print">
+    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+      <i class="bi bi-check-circle-fill text-success fs-1"></i>
+    </div>
+    <h4 class="fw-bold">Bán vé thành công!</h4>
+  </div>
+
+  <div class="receipt-card p-4 shadow-sm">
+
+    <!-- Header -->
+    <div class="text-center mb-3">
+      <div class="fw-bold text-success fs-5 mb-1">TRANGGDCinema</div>
+      <span class="badge bg-success px-3 py-2">ĐÃ XÁC NHẬN</span>
+    </div>
+
+    <!-- Booking code -->
+    <div class="text-center bg-light rounded p-3 mb-3">
+      <div class="text-muted small mb-1">Mã vé</div>
+      <div class="fw-bold fs-3 text-success"
+           th:text="${invoice.bookingCode}"></div>
+    </div>
+
+    <div class="ticket-divider"></div>
+
+    <!-- Movie info -->
+    <div class="mb-3">
+      <div class="fw-bold fs-5 mb-2" th:text="${invoice.movieName}"></div>
+      <div class="row g-2 small text-muted">
+        <div class="col-6">
+          <i class="bi bi-building me-1"></i>
+          <span th:text="${invoice.cinemaRoom}"></span>
+        </div>
+        <div class="col-6">
+          <i class="bi bi-calendar3 me-1"></i>
+          <span th:text="${#temporals.format(invoice.scheduleShow, 'dd/MM/yyyy')}"></span>
+        </div>
+        <div class="col-6">
+          <i class="bi bi-clock me-1"></i>
+          <span class="text-success fw-bold" th:text="${invoice.scheduleShowTime}"></span>
+        </div>
+        <div class="col-6">
+          <i class="bi bi-grid me-1"></i>
+          Ghế: <span class="fw-bold" th:text="${invoice.seat}"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ticket-divider"></div>
+
+    <!-- Line items -->
+    <div class="mb-3">
+      <div class="fw-semibold mb-2">Chi tiết:</div>
+      <div th:each="ticket : ${tickets}"
+           class="d-flex justify-content-between small py-1 border-bottom">
+                <span>
+                    Ghế <span th:text="${ticket.scheduleSeat.seat.seatRow}"></span>
+                    <span th:text="${ticket.scheduleSeat.seat.seatColumn}"></span>
+                    <span class="badge ms-1"
+                          th:classappend="${ticket.ticketType.name() == 'VIP'} ? 'bg-warning text-dark' : 'bg-secondary'"
+                          th:text="${ticket.ticketType.name()}"></span>
+                </span>
+        <span th:text="${#numbers.formatInteger(ticket.price, 1, 'COMMA')} + 'đ'"></span>
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="d-flex justify-content-between fw-bold border-top pt-2">
+      <span>Tổng tiền</span>
+      <span class="text-success"
+            th:text="${#numbers.formatInteger(invoice.totalMoney, 1, 'COMMA')} + 'đ'"></span>
+    </div>
+
+    <!-- Score -->
+    <div th:if="${invoice.addScore > 0 or invoice.useScore > 0}" class="mt-2 small text-muted">
+      <div th:if="${invoice.useScore > 0}">
+        <i class="bi bi-dash-circle text-danger me-1"></i>
+        Đã dùng <span th:text="${invoice.useScore}"></span> điểm
+      </div>
+      <div th:if="${invoice.addScore > 0}">
+        <i class="bi bi-plus-circle text-success me-1"></i>
+        Cộng <span th:text="${invoice.addScore}"></span> điểm
+      </div>
+    </div>
+
+    <div class="ticket-divider"></div>
+
+    <div class="text-center text-muted small">
+      <span th:text="${#temporals.format(invoice.bookingDate, 'HH:mm dd/MM/yyyy')}"></span>
+    </div>
+
+    <div th:if="${invoice.handledBy != null}" class="text-center text-muted small mt-2">
+      Nhân viên bán:
+      <span class="fw-semibold"
+            th:text="${invoice.handledBy.fullName != null ? invoice.handledBy.fullName : invoice.handledBy.userName}"></span>
+    </div>
+
+  </div>
+
+  <!-- Actions -->
+  <div class="text-center mt-4 d-flex justify-content-center gap-3 no-print">
+    <button onclick="window.print()" class="btn btn-outline-secondary">
+      <i class="bi bi-printer me-1"></i>In vé
+    </button>
+    <a th:href="@{/ticket/select-movie}" class="btn btn-success">
+      <i class="bi bi-plus-lg me-1"></i>Bán vé tiếp
+    </a>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

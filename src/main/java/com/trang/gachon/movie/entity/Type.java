@@ -1,5 +1,6 @@
 package com.trang.gachon.movie.entity;
 
+import com.trang.gachon.movie.enums.MovieGenre;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,7 +16,12 @@ public class Type {
     @Column(name = "type_id")
     private Long typeId;
 
-    // hành động, hài hước, viễn tưởng...
-    @Column(name = "type_name", nullable = false, length = 100)
+    // Tên hiển thị: "Hành động", "Kinh dị"...
+    @Column(name = "type_name", nullable = false, columnDefinition = "NVARCHAR(100)")
     private String typeName;
+
+    // Enum để dùng trong code logic, lưu dạng string vào DB
+    @Enumerated(EnumType.STRING)
+    @Column(name = "movie_genre", length = 30)
+    private MovieGenre genre;
 }

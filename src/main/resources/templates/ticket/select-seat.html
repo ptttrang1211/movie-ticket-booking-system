@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Bán vé - Chọn ghế</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+    <style>
+        .seat-btn{width:36px;height:36px;border-radius:6px 6px 0 0;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+        .seat-btn.available-normal{background:#e9ecef;color:#333}
+        .seat-btn.available-vip{background:#fff3cd;color:#856404}
+        .seat-btn.sold{background:#dee2e6;color:#adb5bd;cursor:not-allowed;opacity:.6}
+        .seat-btn.selected{background:#dc3545;color:white;transform:scale(1.1)}
+        .seat-btn:hover:not(.sold){transform:scale(1.1);filter:brightness(.9)}
+        .screen{background:linear-gradient(to bottom,#aaa,#fff);height:8px;border-radius:50%;margin:0 auto 24px;width:80%}
+    </style>
+</head>
+<body>
+<div class="d-flex">
+
+    <div class="sidebar bg-dark text-white p-3" style="min-width:200px;min-height:100vh">
+        <h5 class="fw-bold mb-4"><i class="bi bi-camera-reels-fill text-danger me-2"></i>Employee</h5>
+        <ul class="nav flex-column gap-1">
+            <li><a th:href="@{/ticket/select-movie}" class="nav-link text-white active"><i class="bi bi-ticket me-2"></i>Bán vé</a></li>
+            <li><a th:href="@{/home}"  class="nav-link text-white"><i class="bi bi-house me-2"></i>Trang chủ</a></li>
+        </ul>
+    </div>
+
+    <div class="flex-grow-1 p-4">
+
+        <!-- Flash error -->
+        <div th:if="${errorMsg}" class="alert alert-danger" th:text="${errorMsg}"></div>
+
+        <div class="row g-4">
+
+            <!-- LEFT: Sơ đồ ghế -->
+            <div class="col-lg-8">
+                <div class="p-3 bg-light rounded mb-3">
+                    <div class="fw-bold"
+                         th:text="${showtime.movie.movieNameVn != null ? showtime.movie.movieNameVn : showtime.movie.movieNameEnglish}"></div>
+                    <small class="text-muted">
+                        <span th:text="${showtime.cinemaRoom.branch.branchName}"></span> ·
+                        <span th:text="${showtime.cinemaRoom.cinemaRoomName}"></span> ·
+                        <span th:text="${#temporals.format(showtime.showDate, 'dd/MM/yyyy')}"></span> ·
+                        <span class="text-danger fw-bold" th:text="${showtime.showTime}"></span>
+                    </small>
+                </div>
+
+                <div class="screen"></div>
+                <div class="text-center text-muted small mb-4">MÀN CHIẾU</div>
+
+                <div th:each="rowEntry : ${seatsByRow}" class="d-flex justify-content-center gap-1 mb-1">
+                    <div class="d-flex align-items-center" style="width:24px">
+                        <span class="text-muted small" th:text="${rowEntry.key}"></span>
+                    </div>
+                    <div th:each="seat : ${rowEntry.value}">
+                        <th:block th:with="
+                            status=${seatStatusMap[seat.seatId] != null ? seatStatusMap[seat.seatId] : 'AVAILABLE'},
+                            isVip=${seat.seatType.name() == 'VIP'},
+                            isSold=${status == 'SOLD'}">
+                            <button type="button"
+                                    th:data-seat-id="${seat.seatId}"
+                                    th:data-seat-name="${seat.seatRow} + ${seat.seatColumn}"
+                                    th:data-price="${isVip ? vipPrice : normalPrice}"
+                                    th:data-vip="${isVip}"
+                                    th:disabled="${isSold}"
+                                    th:classappend="${isSold} ? ' sold' : (${isVip} ? ' available-vip' : ' available-normal')"
+                                    class="seat-btn"
+                                    onclick="toggleSeat(this)">
+                                <span th:text="${seat.seatColumn}"></span>
+                            </button>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="d-flex justify-content-center gap-4 mt-4 small">
+                    <div class="d-flex align-items-center gap-1">
+                        <span style="width:20px;height:20px;background:#e9ecef;border-radius:3px;display:inline-block"></span> Thường
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span style="width:20px;height:20px;background:#fff3cd;border-radius:3px;display:inline-block"></span> VIP
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span style="width:20px;height:20px;background:#dc3545;border-radius:3px;display:inline-block"></span> Đang chọn
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span style="width:20px;height:20px;background:#dee2e6;border-radius:3px;display:inline-block;opacity:.6"></span> Đã bán
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Form bán vé -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top:20px">
+                    <div class="card-header bg-dark text-white fw-bold">
+                        Thông tin bán vé
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Ghế đã chọn -->
+                        <div class="mb-3">
+                            <div class="fw-semibold mb-1">Ghế đã chọn:</div>
+                            <div id="selected-seats-display" class="text-muted small">
+                                Chưa chọn ghế
+                            </div>
+                        </div>
+
+                        <!-- Tổng tiền -->
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="fw-semibold">Tạm tính:</span>
+                            <span class="fw-bold text-danger" id="subtotal-display">0đ</span>
+                        </div>
+
+                        <!-- Promotion -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Khuyến mãi:</label>
+                            <select class="form-select form-select-sm" id="promotionSelect"
+                                    onchange="updateTotal()">
+                                <option value="" data-discount="0">Không áp dụng</option>
+                                <option th:each="p : ${promotions}"
+                                        th:value="${p.promotionId}"
+                                        th:data-discount="${p.discountLevel}"
+                                        th:text="${p.title + ' (-' + #numbers.formatInteger(p.discountLevel, 1, 'COMMA') + 'đ)'}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Tìm member -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tra cứu thành viên (nếu có):</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" id="memberKeywordInput"
+                                       placeholder="Mã member hoặc CMND"/>
+                                <button type="button" class="btn btn-outline-secondary"
+                                        onclick="searchMember()">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            <div id="memberInfo" class="mt-2 small d-none">
+                                <div class="p-2 bg-success bg-opacity-10 rounded border border-success">
+                                    <div class="fw-bold text-success" id="memberName"></div>
+                                    <div class="text-muted">
+                                        Điểm: <span class="fw-bold" id="memberScore"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="memberNotFound" class="mt-2 small text-danger d-none">
+                                Không tìm thấy thành viên, hệ thống sẽ bán như khách vãng lai
+                            </div>
+                        </div>
+
+                        <!-- Dùng điểm -->
+                        <div class="mb-3" id="useScoreSection" style="display:none!important">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input"
+                                       id="useScoreCheck" onchange="updateTotal()"/>
+                                <label class="form-check-label" for="useScoreCheck">
+                                    Dùng điểm quy đổi toàn bộ
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Tổng sau giảm -->
+                        <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-2 mb-3">
+                            <span>Tổng tiền:</span>
+                            <span class="text-danger" id="total-display">0đ</span>
+                        </div>
+
+                        <!-- Form submit -->
+                        <form th:action="@{/ticket/confirm}" method="post" id="ticketForm">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="showtimeId" th:value="${showtime.showTimeId}"/>
+                            <input type="hidden" name="memberKeyword" id="memberKeywordHidden"/>
+                            <input type="hidden" name="promotionId"   id="promotionIdInput"/>
+                            <input type="hidden" name="useScore"      id="useScoreInput" value="false"/>
+
+                            <button type="button" class="btn btn-danger w-100 py-2 fw-bold"
+                                    id="confirmBtn" disabled onclick="submitTicket()">
+                                <i class="bi bi-receipt me-1"></i>Bán vé
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const selectedSeats = {};
+    let foundMemberKeyword = '';
+
+    function toggleSeat(btn) {
+        if (btn.disabled) return;
+        const seatId   = btn.dataset.seatId;
+        const seatName = btn.dataset.seatName;
+        const price    = parseInt(btn.dataset.price);
+        const isVip    = btn.dataset.vip === 'true';
+
+        if (selectedSeats[seatId]) {
+            delete selectedSeats[seatId];
+            btn.classList.remove('selected');
+            btn.classList.add(isVip ? 'available-vip' : 'available-normal');
+        } else {
+            selectedSeats[seatId] = { name: seatName, price, isVip };
+            btn.classList.add('selected');
+            btn.classList.remove('available-vip', 'available-normal');
+        }
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        const seats    = Object.values(selectedSeats);
+        const subTotal = seats.reduce((s, x) => s + x.price, 0);
+
+        const display  = document.getElementById('selected-seats-display');
+        display.innerHTML = seats.length === 0
+            ? 'Chưa chọn ghế'
+            : seats.map(s =>
+                `<span class="badge ${s.isVip ? 'bg-warning text-dark' : 'bg-secondary'} me-1">${s.name}</span>`
+            ).join('');
+
+        document.getElementById('subtotal-display').textContent =
+            subTotal.toLocaleString('vi-VN') + 'đ';
+
+        updateTotal();
+        document.getElementById('confirmBtn').disabled = seats.length === 0;
+    }
+
+    function updateTotal() {
+        const seats    = Object.values(selectedSeats);
+        const subTotal = seats.reduce((s, x) => s + x.price, 0);
+        const select   = document.getElementById('promotionSelect');
+        const discount = parseInt(select.options[select.selectedIndex].dataset.discount || 0);
+        const useScore = document.getElementById('useScoreCheck').checked;
+
+        let total = Math.max(0, subTotal - discount);
+        if (useScore) total = 0;
+
+        document.getElementById('total-display').textContent =
+            total.toLocaleString('vi-VN') + 'đ';
+    }
+
+    async function searchMember() {
+        const kw = document.getElementById('memberKeywordInput').value.trim();
+        if (!kw) return;
+
+        const res  = await fetch(`/ticket/find-member?keyword=${encodeURIComponent(kw)}`);
+        const data = await res.json();
+
+        const infoBox  = document.getElementById('memberInfo');
+        const notFound = document.getElementById('memberNotFound');
+
+        if (data && data.fullName) {
+            document.getElementById('memberName').textContent  = data.fullName;
+            document.getElementById('memberScore').textContent = data.score.toLocaleString('vi-VN');
+            infoBox.classList.remove('d-none');
+            notFound.classList.add('d-none');
+            document.getElementById('useScoreSection').style.setProperty('display', 'block', 'important');
+            foundMemberKeyword = kw;
+        } else {
+            infoBox.classList.add('d-none');
+            notFound.classList.remove('d-none');
+            document.getElementById('useScoreSection').style.setProperty('display', 'none', 'important');
+            foundMemberKeyword = '';
+        }
+    }
+
+    function submitTicket() {
+        const seatIds = Object.keys(selectedSeats);
+        if (!seatIds.length) { alert('Vui lòng chọn ít nhất 1 ghế!'); return; }
+
+        const form = document.getElementById('ticketForm');
+        form.querySelectorAll('input[name="seatIds"]').forEach(el => el.remove());
+
+        seatIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden'; input.name = 'seatIds'; input.value = id;
+            form.appendChild(input);
+        });
+
+        const select = document.getElementById('promotionSelect');
+        document.getElementById('promotionIdInput').value  = select.value;
+        document.getElementById('memberKeywordHidden').value = foundMemberKeyword;
+        document.getElementById('useScoreInput').value =
+            document.getElementById('useScoreCheck').checked;
+
+        form.submit();
+    }
+
+    // Enter để tìm member
+    document.getElementById('memberKeywordInput')
+        .addEventListener('keypress', e => { if (e.key === 'Enter') searchMember(); });
+</script>
+</body>
+</html>

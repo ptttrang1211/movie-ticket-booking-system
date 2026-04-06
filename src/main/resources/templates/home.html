@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRANGGDCinema</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090c13;
+      --panel: #121723;
+      --panel-border: rgba(255,255,255,0.08);
+      --text: #f6f7fb;
+      --muted: #b7bfd3;
+      --accent: #ff5c83;
+      --accent-2: #6d8cff;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(9, 12, 19, 0.88);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .navbar-wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 20px;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: .4px;
+    }
+
+    .brand span { color: var(--accent); }
+
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .main-nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background .2s ease, color .2s ease;
+    }
+
+    .main-nav a:hover,
+    .main-nav a.active {
+      color: #fff;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .account-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ghost-btn,
+    .primary-btn,
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform .2s ease, opacity .2s ease, border-color .2s ease;
+      border: 1px solid transparent;
+    }
+
+    .ghost-btn {
+      color: #fff;
+      border-color: rgba(255,255,255,0.16);
+      background: transparent;
+    }
+
+    .primary-btn {
+      color: #fff;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    }
+
+    .home-btn {
+      color: #fff;
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.1);
+    }
+
+    .ghost-btn:hover,
+    .primary-btn:hover,
+    .home-btn:hover { transform: translateY(-1px); opacity: .94; color: #fff; }
+
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+    }
+
+    .hero {
+      min-height: 74vh;
+      display: flex;
+      align-items: flex-end;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #111827 0%, #111827 55%, #1f2937 100%);
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(8,12,20,.95) 0%, rgba(8,12,20,.78) 45%, rgba(8,12,20,.42) 100%);
+    }
+
+    .hero-inner {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 72px 20px 88px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy {
+      max-width: 680px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 16px;
+    }
+
+    .hero-title {
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: 1.02;
+      font-weight: 900;
+      margin-bottom: 14px;
+      max-width: 12ch;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: #f8fafc;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .hero-meta .tag,
+    .movie-type {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .hero-description {
+      max-width: 640px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-bottom: 28px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hero-actions .home-btn {
+      padding: 12px 18px;
+    }
+
+    .section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 40px 20px 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .section-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .quick-grid,
+    .promo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .quick-card,
+    .promo-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 18px;
+      text-decoration: none;
+      color: #fff;
+      min-height: 138px;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+
+    .quick-card:hover,
+    .promo-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(109, 140, 255, 0.35);
+      color: #fff;
+    }
+
+    .quick-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .quick-label {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .quick-desc,
+    .promo-card p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .movies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      padding-bottom: 52px;
+    }
+
+    .movie-card {
+      background: #101521;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform .2s ease, border-color .2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .movie-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 92, 131, 0.35);
+    }
+
+    .movie-poster {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      display: block;
+      background: #1f2937;
+    }
+
+    .movie-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .movie-title {
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin: 0;
+    }
+
+    .movie-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin: -8px 0 0;
+    }
+
+    .movie-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .movie-types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .movie-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .promo-card h3 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .promo-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,92,131,.12);
+      color: #ff9ab1;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .empty-state {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 32px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    footer {
+      padding: 28px 20px 40px;
+      text-align: center;
+      color: #8f9ab2;
+      font-size: 13px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 12px;
+    }
+
+    @media (max-width: 991px) {
+      .navbar-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+      .hero {
+        min-height: 66vh;
+        align-items: flex-end;
+      }
+      .hero-inner {
+        padding-top: 48px;
+        padding-bottom: 64px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="navbar-wrap">
+    <a href="/home" class="brand">TRANGGD<span>Cinema</span></a>
+
+    <nav class="main-nav">
+      <a href="/movies" class="active">Phim</a>
+      <a href="/showtimes">Lịch chiếu</a>
+      <a href="/promotions">Khuyến mãi</a>
+      <a sec:authorize="hasAnyRole('EMPLOYEE','ADMIN')" href="/booking-manage">Quản lý booking</a>
+      <a sec:authorize="hasAnyRole('EMPLOYEE','ADMIN')" href="/ticket">Quầy vé</a>
+      <a sec:authorize="hasRole('ADMIN')" href="/admin/movie/list">Admin phim</a>
+    </nav>
+
+    <div class="account-actions">
+      <div sec:authorize="isAnonymous()">
+        <a href="/auth/login" class="ghost-btn">Đăng nhập</a>
+        <a href="/auth/register" class="primary-btn">Đăng ký</a>
+      </div>
+
+      <div sec:authorize="isAuthenticated()" class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="user-chip">
+          <span class="avatar"
+                th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 1))}">U</span>
+          <span sec:authentication="name"></span>
+        </span>
+        <a href="/account/info" class="ghost-btn">Tài khoản</a>
+        <form th:action="@{/logout}" method="post" class="m-0">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <button type="submit" class="ghost-btn">Đăng xuất</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <img th:if="${featuredMovie != null and featuredMovie.bannerImageSrc != null}"
+       th:src="${featuredMovie.bannerImageSrc}"
+       class="hero-bg"
+       alt="featured banner">
+  <img th:if="${featuredMovie != null and featuredMovie.bannerImageSrc == null and featuredMovie.largeImageSrc != null}"
+       th:src="${featuredMovie.largeImageSrc}"
+       class="hero-bg"
+       alt="featured banner">
+  <div class="hero-overlay"></div>
+  <div class="hero-inner">
+    <div class="hero-copy" th:if="${featuredMovie != null}">
+      <div class="eyebrow">
+        <span>Phim nổi bật hôm nay</span>
+      </div>
+
+      <h1 class="hero-title"
+          th:text="${featuredMovie.movieNameVn != null ? featuredMovie.movieNameVn : featuredMovie.movieNameEnglish}">
+        Tên phim nổi bật
+      </h1>
+
+      <div class="hero-meta">
+        <span class="tag" th:text="${featuredMovie.duration} + ' phút'">120 phút</span>
+        <span class="tag" th:text="${featuredMovie.version}">2D</span>
+        <span class="tag"
+              th:each="type : ${featuredMovie.types}"
+              th:text="${type.typeName}">Hành động</span>
+      </div>
+
+      <p class="hero-description"
+         th:text="${featuredMovie.content}">
+        Nội dung phim nổi bật sẽ hiện ở đây.
+      </p>
+
+      <div class="hero-actions">
+        <a th:href="@{/movies/{id}(id=${featuredMovie.movieId})}" class="primary-btn">Chi tiết phim</a>
+        <a sec:authorize="hasRole('MEMBER')"
+           th:href="@{/booking/select-branch(movieId=${featuredMovie.movieId})}"
+           class="home-btn">Đặt vé ngay</a>
+        <a sec:authorize="hasAnyRole('EMPLOYEE','ADMIN')"
+           th:href="@{/showtimes(movieId=${featuredMovie.movieId})}"
+           class="home-btn">Xem lịch chiếu</a>
+        <a sec:authorize="isAnonymous()"
+           th:href="@{/booking/select-branch(movieId=${featuredMovie.movieId})}"
+           class="home-btn">Đặt vé ngay</a>
+        <a th:if="${featuredMovie.trailer != null and !#strings.isEmpty(featuredMovie.trailer)}"
+           th:href="${featuredMovie.trailer}"
+           target="_blank" rel="noopener noreferrer"
+           class="home-btn">Xem trailer</a>
+        <a th:if="${featuredMovie.reviewLink != null and !#strings.isEmpty(featuredMovie.reviewLink)}"
+           th:href="${featuredMovie.reviewLink}"
+           target="_blank" rel="noopener noreferrer"
+           class="home-btn">Xem review</a>
+      </div>
+    </div>
+
+    <div class="hero-copy" th:if="${featuredMovie == null}">
+      <div class="eyebrow">
+        <span>Chào mừng đến với TRANGGDCinema</span>
+      </div>
+      <h1 class="hero-title">Đặt vé phim theo đúng lịch chiếu thật</h1>
+      <p class="hero-description">
+        Khám phá phim đang chiếu, chọn suất phù hợp và đi từ trailer đến booking ngay trên cùng một màn hình.
+      </p>
+      <div class="hero-actions">
+        <a href="/movies" class="primary-btn">Xem phim đang chiếu</a>
+        <a href="/showtimes" class="home-btn">Lịch chiếu hôm nay</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div sec:authorize="isAnonymous()">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Bắt đầu nhanh</h2>
+        <p class="section-subtitle">Từ xem phim, lịch chiếu đến đăng ký thành viên đều đi từ đây.</p>
+      </div>
+    </div>
+    <div class="quick-grid">
+      <a href="/movies" class="quick-card">
+        <div class="quick-icon">🎬</div>
+        <div class="quick-label">Phim đang chiếu</div>
+        <div class="quick-desc">Xem các phim đang mở bán và đi tiếp sang booking ngay.</div>
+      </a>
+      <a href="/showtimes" class="quick-card">
+        <div class="quick-icon">🕐</div>
+        <div class="quick-label">Lịch chiếu</div>
+        <div class="quick-desc">Tìm suất chiếu theo ngày và chi nhánh đang hoạt động.</div>
+      </a>
+      <a href="/promotions" class="quick-card">
+        <div class="quick-icon">🎁</div>
+        <div class="quick-label">Ưu đãi hiện có</div>
+        <div class="quick-desc">Theo dõi chương trình giảm giá đang áp dụng.</div>
+      </a>
+      <a href="/auth/register" class="quick-card">
+        <div class="quick-icon">✨</div>
+        <div class="quick-label">Đăng ký thành viên</div>
+        <div class="quick-desc">Tích điểm, xem lịch sử đặt vé và dùng điểm khi mua.</div>
+      </a>
+    </div>
+  </div>
+
+  <div sec:authorize="hasRole('MEMBER')">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Không gian thành viên</h2>
+        <p class="section-subtitle">Tất cả tác vụ chính của member được gom lại trên một hàng.</p>
+      </div>
+    </div>
+    <div class="quick-grid">
+      <a href="/movies" class="quick-card">
+        <div class="quick-icon">🎬</div>
+        <div class="quick-label">Đặt vé ngay</div>
+        <div class="quick-desc">Đi thẳng vào phim đang chiếu để chọn chi nhánh và suất chiếu.</div>
+      </a>
+      <a href="/account/booked-ticket" class="quick-card">
+        <div class="quick-icon">🎟️</div>
+        <div class="quick-label">Vé của tôi</div>
+        <div class="quick-desc">Xem mã đặt vé và lịch sử booking đã tạo.</div>
+      </a>
+      <a href="/account/info" class="quick-card">
+        <div class="quick-icon">👤</div>
+        <div class="quick-label">Tài khoản</div>
+        <div class="quick-desc">Cập nhật thông tin cá nhân và đổi mật khẩu.</div>
+      </a>
+      <a href="/account/score-history" class="quick-card">
+        <div class="quick-icon">⭐</div>
+        <div class="quick-label">Điểm thưởng</div>
+        <div class="quick-desc">Theo dõi điểm đã cộng, đã dùng và trạng thái hiện tại.</div>
+      </a>
+    </div>
+  </div>
+
+  <div sec:authorize="hasRole('EMPLOYEE')">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Nghiệp vụ quầy vé</h2>
+        <p class="section-subtitle">Nhánh này dành riêng cho nhân viên xử lý bán vé và booking online.</p>
+      </div>
+    </div>
+    <div class="quick-grid">
+      <a href="/ticket/select-movie" class="quick-card">
+        <div class="quick-icon">🎟️</div>
+        <div class="quick-label">Bán vé tại quầy</div>
+        <div class="quick-desc">Chọn phim, suất chiếu, ghế và in vé cho khách tại quầy.</div>
+      </a>
+      <a href="/booking-manage" class="quick-card">
+        <div class="quick-icon">📋</div>
+        <div class="quick-label">Quản lý booking</div>
+        <div class="quick-desc">Xác nhận hoặc hủy booking online rồi in vé nếu khách thanh toán.</div>
+      </a>
+      <a href="/showtimes" class="quick-card">
+        <div class="quick-icon">🕐</div>
+        <div class="quick-label">Lịch chiếu</div>
+        <div class="quick-desc">Xem nhanh các suất chiếu đang bán trong ngày.</div>
+      </a>
+      <a href="/account/info" class="quick-card">
+        <div class="quick-icon">👤</div>
+        <div class="quick-label">Tài khoản</div>
+        <div class="quick-desc">Theo dõi thông tin nhân viên đang thao tác trong hệ thống.</div>
+      </a>
+    </div>
+  </div>
+
+  <div sec:authorize="hasRole('ADMIN')">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Điều khiển hệ thống</h2>
+        <p class="section-subtitle">Admin có thể đi thẳng đến từng module vận hành quan trọng.</p>
+      </div>
+    </div>
+    <div class="quick-grid">
+      <a href="/admin/movie/list" class="quick-card">
+        <div class="quick-icon">🎬</div>
+        <div class="quick-label">Quản lý phim</div>
+        <div class="quick-desc">Thêm phim, gắn banner trang chủ, đổi poster và cập nhật nội dung.</div>
+      </a>
+      <a href="/admin/showtime/list" class="quick-card">
+        <div class="quick-icon">🗓️</div>
+        <div class="quick-label">Lịch chiếu</div>
+        <div class="quick-desc">Tạo suất chiếu theo chi nhánh, phòng chiếu, ngày và giờ thật.</div>
+      </a>
+      <a href="/admin/cinema-room" class="quick-card">
+        <div class="quick-icon">🏛️</div>
+        <div class="quick-label">Phòng chiếu</div>
+        <div class="quick-desc">Quản lý phòng, số ghế và layout ghế tự sinh trong hệ thống.</div>
+      </a>
+      <a href="/admin/branch" class="quick-card">
+        <div class="quick-icon">📍</div>
+        <div class="quick-label">Chi nhánh</div>
+        <div class="quick-desc">Cập nhật thông tin rạp và dữ liệu hiển thị cho từng khu vực.</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section" th:if="${not #lists.isEmpty(promotions)}">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Ưu đãi đang diễn ra</h2>
+      <p class="section-subtitle">Các promotion đang còn hiệu lực sẽ hiện tự động tại đây.</p>
+    </div>
+    <a href="/promotions" class="ghost-btn">Xem tất cả</a>
+  </div>
+
+  <div class="promo-grid">
+    <article class="promo-card" th:each="promotion : ${promotions}">
+      <div class="promo-badge" th:text="|Giảm ${#numbers.formatInteger(promotion.discountLevel, 0)}đ|">Giảm 20.000đ</div>
+      <h3 th:text="${promotion.title}">Tên khuyến mãi</h3>
+      <p th:text="${promotion.detail}">Mô tả khuyến mãi</p>
+    </article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Phim đang chiếu</h2>
+      <p class="section-subtitle">Danh sách này lấy trực tiếp từ dữ liệu movie đang mở bán trong hệ thống.</p>
+    </div>
+    <a href="/movies" class="ghost-btn">Xem tất cả phim</a>
+  </div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(movies)}">
+    Chưa có phim nào đang chiếu. Admin chỉ cần thêm hoặc mở ngày chiếu của movie là home sẽ cập nhật ngay.
+  </div>
+
+  <div class="movies-grid" th:unless="${#lists.isEmpty(movies)}">
+    <article class="movie-card" th:each="movie : ${movies}">
+      <img th:if="${movie.smallImageSrc != null}"
+           th:src="${movie.smallImageSrc}"
+           class="movie-poster"
+           alt="movie poster">
+      <div th:unless="${movie.smallImageSrc != null}" class="movie-poster"></div>
+
+      <div class="movie-body">
+        <h3 class="movie-title"
+            th:text="${movie.movieNameVn != null ? movie.movieNameVn : movie.movieNameEnglish}">
+          Tên phim
+        </h3>
+        <p class="movie-subtitle" th:text="${movie.movieNameEnglish}">Movie title</p>
+
+        <div class="movie-types">
+          <span class="movie-type" th:each="type : ${movie.types}" th:text="${type.typeName}">Hành động</span>
+        </div>
+
+        <div class="movie-meta">
+          <div th:text="${movie.duration} + ' phút'">120 phút</div>
+          <div th:text="${movie.version}">2D</div>
+        </div>
+
+        <div class="movie-actions">
+          <a th:href="@{/movies/{id}(id=${movie.movieId})}" class="ghost-btn">Chi tiết</a>
+          <a sec:authorize="hasRole('MEMBER')"
+             th:href="@{/booking/select-branch(movieId=${movie.movieId})}"
+             class="primary-btn">Đặt vé</a>
+          <a sec:authorize="hasAnyRole('EMPLOYEE','ADMIN')"
+             th:href="@{/showtimes(movieId=${movie.movieId})}"
+             class="primary-btn">Lịch chiếu</a>
+          <a sec:authorize="isAnonymous()"
+             th:href="@{/booking/select-branch(movieId=${movie.movieId})}"
+             class="primary-btn">Đặt vé</a>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<footer>
+  © 2026 TRANGGDCinema — Movie, showtime, booking và quầy vé cùng chạy trên một luồng dữ liệu thống nhất.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

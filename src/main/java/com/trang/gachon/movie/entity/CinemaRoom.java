@@ -18,7 +18,7 @@ public class CinemaRoom {
     @Column(name = "cinema_room_id")
     private Long cinemaRoomId;
 
-    @Column(name = "cinema_room_name", nullable = false, length = 100)
+    @Column(name = "cinema_room_name", nullable = false, columnDefinition = "NVARCHAR(100)")
     private String cinemaRoomName;
 
     @Column(name = "seat_quantity", nullable = false)
@@ -27,8 +27,14 @@ public class CinemaRoom {
     @OneToMany(mappedBy = "cinemaRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Seat> seats;
 
-    @OneToMany(mappedBy = "cinemaRoom",  cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Movie> movies;
+    // Quan hệ ngược với showtime để:
+    // - truy ra lịch chiếu của phòng
+    // - hỗ trợ các query nghiệp vụ như "chi nhánh nào đang chiếu phim này"
+    @OneToMany(mappedBy = "cinemaRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Showtime> showTimes;
+
+//    @OneToMany(mappedBy = "cinemaRoom",  cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private List<Movie> movies;
 
     //fk -> branch (N:1)
     @ManyToOne(fetch = FetchType.LAZY)
